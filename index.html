@@ -140,6 +140,8 @@ section{padding:88px 0;border-top:1px solid var(--line);scroll-margin-top:68px}
 .dif div:nth-child(even){padding-left:32px;border-left:1px solid var(--line)}
 .dif h3{font-size:1.25rem}
 .dif p{color:var(--tx2);margin-top:6px;max-width:46ch}
+.dif.todo ul{margin:10px 0 0;padding-left:18px;color:var(--tx2);max-width:52ch}.dif.todo li{margin:5px 0;line-height:1.5}
+
 /* historia */
 .historia{padding:120px 0}
 .historia blockquote{max-width:62ch;margin-top:32px;padding-left:28px;border-left:2px solid var(--acc)}
@@ -207,7 +209,7 @@ section{padding:88px 0;border-top:1px solid var(--line);scroll-margin-top:68px}
 <header>
   <div class="envol">
     <a class="logo" href="#" aria-label="Núcleo Cuantitativo, inicio"><svg viewBox="0 0 32 32" fill="none" stroke="#3cc4dc" stroke-width="1.6"><ellipse cx="16" cy="16" rx="14" ry="5.5"/><ellipse cx="16" cy="16" rx="14" ry="5.5" transform="rotate(60 16 16)"/><ellipse cx="16" cy="16" rx="14" ry="5.5" transform="rotate(120 16 16)"/><circle cx="16" cy="16" r="2.4" fill="#3cc4dc" stroke="none"/></svg><span class="l1">NÚCLEO</span> <span class="l2">CUANTITATIVO</span></a>
-    <nav><a href="#como">Cómo funciona</a><a href="#mejorar">¿Se puede mejorar?</a><a href="#fondeo">Fondeo</a><a href="#planes">Planes</a><a href="legal.html">Condiciones</a></nav>
+    <nav><a href="#como">Cómo funciona</a><a href="#todo">Qué hace</a><a href="#mejorar">¿Se puede mejorar?</a><a href="#fondeo">Fondeo</a><a href="#planes">Planes</a><a href="legal.html">Condiciones</a></nav>
     <a class="btn prim" href="#planes">Ver planes</a>
   </div>
 </header>
@@ -265,7 +267,7 @@ section{padding:88px 0;border-top:1px solid var(--line);scroll-margin-top:68px}
     <div class="pieza" id="fondeo">
       <div class="texto">
         <h2>¿Pasaría tu cartera un reto?</h2>
-        <p>Pones las reglas del reto, de 5.000 a 1.000.000 $, y el programa lo intenta empezando cada semana desde 2023.</p>
+        <p>Pones las reglas de tu reto y el programa lo intenta empezando cada día del pasado: cuántas veces lo pasas, por qué falla y cuántos días tarda.</p>
         <ul><li><b>Peor día</b> y pérdida total, medidos de fábrica.</li><li><b>Dos carteras automáticas:</b> una para tu cuenta y otra que cumple los límites del reto.</li></ul>
       </div>
       <div class="ventana" aria-label="Fondeo en el programa">
@@ -302,14 +304,47 @@ section{padding:88px 0;border-top:1px solid var(--line);scroll-margin-top:68px}
   </div>
 </section>
 
-<section>
+<section id="todo">
   <div class="envol">
-    <div class="sec-cab"><h2>Qué lo hace distinto</h2></div>
-    <div class="dif">
-      <div><h3>Pensado para retos de fondeo</h3> <p>Perfiles de reto y «peor día» de serie. Cada cartera se compara con los límites de tu reto.</p></div>
-      <div><h3>Examen final con años que nunca vio</h3> <p>Se hace una sola vez, al final. Si no lo pasa, no llega al Banco.</p></div>
-      <div><h3>Carteras automáticas</h3> <p>Una para tu cuenta, buscando la que más gana. Otra para fondeo, que cumple los límites.</p></div>
-      <div><h3>Palabras de persona</h3> <p>Nada de jerga: «lo peor que llegó a perder», «¿fue suerte?», «¿es de fiar?».</p></div>
+    <div class="sec-cab"><h2>Todo lo que hace</h2> <p>Para tu cuenta normal y para retos de fondeo. Sin programar.</p></div>
+    <div class="dif todo">
+      <div><h3>1 · Crea estrategias por ti</h3><ul>
+        <li>Eliges el mercado: divisas, oro y plata, índices, petróleo, cripto o acciones. O un grupo entero.</li>
+        <li>Eliges las velas: 15 min, 30 min, 1 hora, 4 horas o diario (algunas acciones e índices, solo diario). Y cuánto duran las operaciones.</li>
+        <li>Eliges los indicadores, o deja que elija el programa.</li>
+        <li>Eliges los años para crear y los años para examinar.</li>
+        <li>Motor genético: prueba miles, cruza las mejores y mejora generación tras generación. Una vez o sin parar.</li></ul></div>
+      <div><h3>2 · Las examina a fondo</h3><ul>
+        <li>Examen final con años que nunca vio, una sola vez.</li>
+        <li>Monte Carlo: órdenes al azar, costes más caros, entrar una vela tarde.</li>
+        <li>Otros mercados y otras velas: ¿funciona fuera de casa?</li>
+        <li>Números cambiados: ¿sigue ganando con ajustes parecidos?</li>
+        <li>Todos los años desde el primer dato (en divisas, desde 2000), y frente a comprar y no tocar.</li></ul></div>
+      <div><h3>3 · Tu Banco, por riesgo</h3><ul>
+        <li>Conservadoras, medias, agresivas y muy agresivas.</li>
+        <li>Curva, ganancia, caída máxima y peor día de cada una.</li>
+        <li>Sus reglas explicadas en palabras sencillas.</li>
+        <li>Tú decides cuáles aprueban: estricto, equilibrado o con tus propias reglas.</li></ul></div>
+      <div><h3>4 · Las mejora</h3><ul>
+        <li>Busca qué días, horas o pausas le sobran.</li>
+        <li>Afina sus números.</li>
+        <li>Y lo vuelve a comprobar con años que no vio: si no mejora de verdad, te lo dice.</li></ul></div>
+      <div><h3>5 · Carteras</h3><ul>
+        <li>Para tu cuenta: la mezcla que más gana con menos caída.</li>
+        <li>Para un reto: la que más veces lo pasa.</li>
+        <li>A mano: eliges tú y ves cómo van juntas, año a año.</li></ul></div>
+      <div><h3>6 · Bots para MetaTrader 5</h3><ul>
+        <li>Uno por estrategia o la cartera entera, con el tamaño que elijas.</li>
+        <li>Frenos de seguridad dentro del bot: los de tu reto, los de tu cuenta o ninguno.</li>
+        <li>Te dice dónde poner cada bot según el nombre que usa tu bróker, y el bot comprueba su mercado.</li></ul></div>
+      <div><h3>7 · Tus datos y tu bróker</h3><ul>
+        <li>Velas de regalo de los principales mercados (96), listas para usar.</li>
+        <li>Descarga más o importa las tuyas.</li>
+        <li>Costes realistas de serie, o los exactos de tu bróker, desde tu MetaTrader 5.</li></ul></div>
+      <div><h3>8 · Hablado como una persona</h3><ul>
+        <li>Nada de jerga: «lo peor que llegó a perder», «¿fue suerte?», «¿es de fiar?».</li>
+        <li>Elegir con botones, no escribir fórmulas.</li>
+        <li>Y un escaparate con lo que ya ha creado el motor, año a año.</li></ul></div>
     </div>
   </div>
 </section>
@@ -350,7 +385,7 @@ section{padding:88px 0;border-top:1px solid var(--line);scroll-margin-top:68px}
         <div class="precio">Para siempre</div>
         <ul>
           <li><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Velas de regalo de los principales mercados (96: divisas, oro, índices, cripto y acciones)</li>
-          <li><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Crear estrategias y ver sus resultados</li>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Crear estrategias con velas de 15 min, 30 min, 1 hora, 4 horas o diario (algunas acciones e índices, solo diario)</li>
           <li><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Un bot de regalo los 7 primeros días, que funciona 30 días</li>
           <li><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Después, bots sueltos: 1 por 8 €, 2 por 14 €, 3 por 21 € (para siempre)</li>
           <li class="no"><svg viewBox="0 0 24 24"><path d="M6 12h12"/></svg>Carteras</li>
