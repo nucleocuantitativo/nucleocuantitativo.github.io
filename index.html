@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Núcleo Cuantitativo</title>
+<meta name="description" content="Programa para crear y comprobar estrategias de trading con datos pasados, armar carteras y estimar si pasarían un reto de fondeo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Mismo sistema que el programa: dos letras del logo, tinta neutra, texto marfil, un solo acento (cian del logo). */
+:root{
+  --bg:#0f1012; --bg2:#0b0c0e; --s1:#15161a; --s2:#1b1d21; --s3:#24262b;
+  --line:#25272c; --line2:#34373e;
+  --tx:#ecebe6; --tx2:#a9a69e; --tx3:#6e6c66;
+  --acc:#3cc4dc; --acc2:#7fd8e8; --accbg:rgba(60,196,220,.10);
+  --ok:#55c08a; --okbg:rgba(85,192,138,.11); --bad:#e5685b; --warn:#dda14a; --warnbg:rgba(221,161,74,.11);
+  --p-crear:#7f9fd0; --p-prueba:#a68cd0; --p-examen:#d58a4c;
+  --fh:"Barlow Semi Condensed","Bahnschrift",system-ui,sans-serif; --fb:"Barlow","Bahnschrift",system-ui,sans-serif;
+  --r:8px; --r2:6px; --w:1240px; --pad:40px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;scroll-behavior:smooth}
+@media (max-width:1600px){html{font-size:15px} :root{--pad:32px}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--bg);color:var(--tx);font-family:var(--fb);font-weight:300;letter-spacing:.012em;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+:focus-visible{outline:1.5px solid var(--acc);outline-offset:3px}
+.num{font-variant-numeric:tabular-nums lining-nums;font-weight:500;letter-spacing:0}
+.pos{color:var(--ok)} .neg{color:var(--bad)}
+.envol{max-width:calc(var(--w) + var(--pad) * 2);margin:0 auto;padding:0 var(--pad)}
+h1,h2,h3{font-family:var(--fh);font-weight:600;letter-spacing:.02em;line-height:1.12}
+/* títulos con el estilo de «NÚCLEO» del logo: misma letra, mismo grosor, mayúsculas y mismo espaciado */
+h1,h2{text-transform:uppercase;letter-spacing:.14em;font-weight:600}
+h1{font-size:2.45rem;line-height:1.2}
+h1 span{display:block}
+h2{font-size:1.45rem;max-width:34ch;line-height:1.3}
+h3{font-size:1.2rem}
+.lead{color:var(--tx2);font-size:1.12rem;margin-top:16px;max-width:52ch}
+.peq{color:var(--tx3);font-size:.9rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 22px;border-radius:var(--r2);font-family:var(--fh);font-weight:600;letter-spacing:.07em;text-transform:uppercase;font-size:.82rem;border:1px solid transparent;transition:background .15s,border-color .15s}
+.btn.prim{background:var(--tx);color:#111214} .btn.prim:hover{background:#fff}
+.btn.sec{border-color:var(--line2)} .btn.sec:hover{border-color:var(--tx3);background:var(--s2)}
+.btn.peq{height:30px;padding:0 11px;font-size:.7rem}
+.tag{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:4px;font-size:.76rem;font-weight:500}
+.tag.ok{background:var(--okbg);color:var(--ok)} .tag.neu{background:var(--s3);color:var(--tx2)} .tag.acc{background:var(--accbg);color:var(--acc2)}
+
+/* cabecera */
+header{position:sticky;top:0;z-index:10;background:rgba(15,16,18,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header .envol{display:flex;align-items:center;gap:32px;height:68px}
+.logo{display:flex;align-items:center;gap:10px;white-space:nowrap}
+.logo svg{width:26px;height:26px}
+.logo .l1{font-family:var(--fh);font-weight:600;letter-spacing:.14em}
+.logo .l2{font-weight:300;letter-spacing:.14em;color:var(--acc)}
+nav{display:flex;gap:28px;margin-left:auto;font-family:var(--fh);font-weight:500;letter-spacing:.06em;color:var(--tx2)}
+nav a:hover{color:var(--tx)}
+header .entrar{font-family:var(--fh);font-weight:500;letter-spacing:.06em;color:var(--tx)}
+header .entrar:hover{color:var(--acc2)}
+@media (max-width:900px){nav{display:none} header .entrar{margin-left:auto}}
+/* dentro del programa («Ver planes»): solo los planes, sin cabecera */
+body.solo-planes header, body.solo-planes main > section:not(#planes), body.solo-planes footer{display:none}
+body.solo-planes #planes{padding-top:40px}
+
+/* portada */
+.portada{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:40px 56px;align-items:start;padding:72px 0 80px}
+.portada h1{grid-column:1/-1}
+.portada .acc{display:flex;gap:10px;margin-top:30px}
+.portada .peq{margin-top:16px}
+.ventana{border:1px solid var(--line2);border-radius:var(--r);background:var(--bg);overflow:hidden;box-shadow:0 30px 60px -40px rgba(0,0,0,.9)}
+.ventana .barra{display:flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-bottom:1px solid var(--line);background:var(--bg2)}
+.ventana .barra i{width:8px;height:8px;border-radius:50%;background:var(--s3)}
+.ventana .barra span{margin-left:10px;font-size:.72rem;color:var(--tx3)}
+.ventana .cuerpo{padding:20px 22px}
+.f-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.f-cab b{font-family:var(--fh);font-weight:600;font-size:1.35rem;letter-spacing:.02em;display:block}
+.f-cab small{color:var(--tx3)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);margin:16px 0 8px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.kpis div{padding:10px 12px 10px 0}
+.kpis div+div{padding-left:12px;border-left:1px solid var(--line)}
+.kpis small{display:block;font-size:.72rem;color:var(--tx3)}
+.kpis b{font-size:1.15rem}
+svg.graf{width:100%;display:block}
+
+/* secciones */
+section{padding:88px 0;border-top:1px solid var(--line);scroll-margin-top:68px}
+.sec-cab{display:flex;justify-content:space-between;align-items:flex-end;gap:32px;margin-bottom:40px}
+.sec-cab p{color:var(--tx2);max-width:46ch}
+.pasos{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line2)}
+.paso{padding:20px 22px 0 0;position:relative}
+.paso::before{content:"";position:absolute;top:-1px;left:0;right:22px;height:2px;background:var(--acc);opacity:.0}
+.paso:first-child::before{opacity:1}
+.paso .n{font-size:.8rem;color:var(--acc)}
+.paso h3{margin-top:6px}
+.paso p{color:var(--tx3);font-size:.95rem;margin-top:4px}
+.pieza{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:64px;align-items:center}
+.pieza+.pieza{margin-top:96px}
+.pieza.inv{grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr)}
+.pieza.inv .texto{order:2}
+.texto h2{font-size:1.3rem}
+.texto p{color:var(--tx2);margin-top:12px;max-width:44ch}
+.texto ul{list-style:none;margin-top:18px;border-top:1px solid var(--line)}
+.texto li{padding:10px 0;border-bottom:1px solid var(--line);color:var(--tx2)}
+.texto li b{color:var(--tx);font-weight:500}
+/* piezas del programa */
+.fila{display:grid;grid-template-columns:minmax(0,1fr) 46px 110px 96px 96px;gap:14px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.fila.cab{font-size:.72rem;color:var(--tx3);padding:6px 0}
+.fila b{font-weight:500} .fila small{display:block;color:var(--tx3);font-size:.78rem}
+.fila .d{text-align:right}
+.grupo{font-family:var(--fh);font-weight:600;letter-spacing:.02em;margin:4px 0 8px}
+.grupo span{color:var(--tx3);margin:0 6px}
+.cats{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--line);margin-bottom:18px}
+.cats button{text-align:left;padding:10px 12px 12px 0;font-family:var(--fh);font-weight:600;color:var(--tx3);position:relative;transition:color .15s}
+.cats button+button{padding-left:12px;border-left:1px solid var(--line)}
+.cats button:hover{color:var(--tx2)}
+.cats button.on{color:var(--tx)}
+.cats button.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--cc,var(--acc))}
+.cats [data-cat=c]{--cc:#6fb7b6} .cats [data-cat=m]{--cc:#9aa8cc} .cats [data-cat=a]{--cc:#d6a05e}
+.cats .num{float:right;font-family:var(--fb)}
+.mej{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid var(--line)}
+.mej b{font-weight:500;display:block}
+.mej .num{color:var(--tx2);font-size:.88rem;font-weight:400}
+.mej .bb{display:flex;gap:6px;flex:none}
+.res{font-size:.88rem;color:var(--ok);padding:0 0 12px;border-bottom:1px solid var(--line)}
+.fondeo{display:grid;grid-template-columns:200px minmax(0,1fr);gap:28px;align-items:center}
+.anillo{position:relative;width:200px;height:200px}
+.anillo svg{transform:rotate(-90deg)}
+.anillo div{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.anillo b{font-size:2.4rem;font-weight:400;letter-spacing:-.02em}
+.anillo small{color:var(--tx3);font-size:.8rem}
+.regla{padding:11px 0;border-bottom:1px solid var(--line)}
+.regla .rt{display:flex;justify-content:space-between;font-size:.9rem}
+.regla .rt span{color:var(--tx2)}
+.med{height:4px;border-radius:99px;background:var(--s3);margin-top:8px;overflow:hidden}
+.med i{display:block;height:100%;border-radius:99px}
+/* diferencias */
+.dif{display:grid;grid-template-columns:repeat(2,1fr);border-top:1px solid var(--line2)}
+.dif div{padding:26px 32px 28px 0;border-bottom:1px solid var(--line)}
+.dif div:nth-child(even){padding-left:32px;border-left:1px solid var(--line)}
+.dif h3{font-size:1.25rem}
+.dif p{color:var(--tx2);margin-top:6px;max-width:46ch}
+/* historia */
+.historia{padding:120px 0}
+.historia blockquote{max-width:62ch;margin-top:32px;padding-left:28px;border-left:2px solid var(--acc)}
+.historia blockquote p{font-size:1.2rem;line-height:1.7;color:var(--tx)}
+.historia blockquote p+p{margin-top:20px}
+.historia blockquote footer{margin-top:28px;font-family:var(--fh);font-weight:500;letter-spacing:.05em;color:var(--tx2)}
+/* lo que importa */
+.importa{padding:110px 0}
+.importa .intro{color:var(--tx2);font-size:1.1rem;margin-top:14px}
+.tres{display:grid;grid-template-columns:repeat(3,1fr);margin-top:36px;border-top:1px solid var(--line2)}
+.tres>div{padding:28px 32px 4px 0}
+.tres>div+div{padding-left:32px;border-left:1px solid var(--line)}
+.tres svg{width:26px;height:26px;stroke:var(--acc);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;color:var(--acc)}
+.tres h3{margin-top:16px;font-size:1.25rem}
+.tres p{color:var(--tx2);margin-top:6px;max-width:34ch}
+.importa .cierre{margin-top:40px;font-size:1.1rem;color:var(--tx)}
+@media (max-width:1100px){.tres{grid-template-columns:1fr}.tres>div+div{padding-left:0;border-left:0;border-top:1px solid var(--line)}}
+/* aprende de sus resultados */
+.aprende .intro{color:var(--tx2);font-size:1.1rem;margin-top:14px;max-width:60ch}
+.ejemplos{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:36px}
+.ej{border:1px solid var(--line2);border-radius:var(--r);background:var(--bg);padding:20px 22px;display:flex;flex-direction:column;gap:6px}
+.ej .pre{font-family:var(--fh);font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:.7rem;color:var(--acc)}
+.ej b{font-weight:500;font-size:1.1rem;margin-top:4px}
+.ej .cifra{color:var(--tx2);font-weight:400}
+.ej .bb{display:flex;gap:6px;margin-top:10px}
+.nog{color:var(--tx2)} .nog:hover{color:var(--tx)}
+.ej{transition:opacity .35s}
+.ej.apagada{opacity:.3}
+.ej .res{font-size:.92rem;min-height:0;border:0;padding:0}
+.ej .res:not(:empty){margin-top:8px}
+.ej .res .si{color:var(--ok)} .ej .res .no{color:var(--warn)}
+.giro{display:inline-block;width:12px;height:12px;border:1.5px solid var(--line2);border-top-color:var(--acc);border-radius:50%;animation:gira .8s linear infinite;vertical-align:-1px;margin-right:6px}
+@keyframes gira{to{transform:rotate(360deg)}}
+.aprende .cierre{margin-top:32px;font-size:1.05rem}
+@media (max-width:1100px){.ejemplos{grid-template-columns:1fr}}
+/* planes */
+.planes{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line2);border-radius:var(--r)}
+.plan{padding:32px 34px}
+.plan+.plan{border-left:1px solid var(--line2)}
+.plan h3.plan-n{font-family:var(--fh);font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:1.5rem;display:flex;align-items:center;gap:14px}
+.plan h3.plan-n .tag{letter-spacing:.04em;text-transform:none;font-family:var(--fb)}
+.plan .precio{font-family:var(--fh);font-weight:600;letter-spacing:.05em;color:var(--tx3);margin-top:6px}
+.plan ul{list-style:none;margin:20px 0 26px;border-top:1px solid var(--line)}
+.plan li{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);color:var(--tx2)}
+.plan li svg{flex:none;width:16px;height:16px;margin-top:4px;stroke:var(--acc);fill:none;stroke-width:1.8}
+.plan li.no svg{stroke:var(--tx3)}
+.plan li.no{color:var(--tx3)}
+.prox{font-family:var(--fh);font-weight:600;letter-spacing:.14em;text-transform:uppercase;font-size:.85rem;color:var(--tx3)}
+/* legal */
+.legal{padding:56px 0 64px;border-top:1px solid var(--line);background:var(--bg2)}
+.legal h2{font-size:1rem;margin-bottom:18px}
+.legal .cols{display:grid;grid-template-columns:repeat(2,1fr);gap:22px 48px}
+.legal h3{font-size:.95rem;letter-spacing:.04em;color:var(--tx2);margin-bottom:6px}
+.legal p{font-size:.86rem;color:var(--tx2);line-height:1.65;max-width:72ch}
+.pie{display:flex;justify-content:space-between;align-items:center;gap:20px;padding-top:36px;margin-top:36px;border-top:1px solid var(--line);font-size:.82rem;color:var(--tx3)}
+@media (max-width:1100px){.portada,.pieza,.pieza.inv{grid-template-columns:1fr}.pieza.inv .texto{order:0}.pasos{grid-template-columns:repeat(2,1fr);gap:24px}.dif,.planes,.legal .cols{grid-template-columns:1fr}.plan+.plan{border-left:0;border-top:1px solid var(--line2)}.dif div:nth-child(even){padding-left:0;border-left:0}nav{display:none}h1{font-size:2.4rem}}
+@media (max-width:640px){:root{--pad:16px}.kpis{grid-template-columns:repeat(2,1fr)}.fila{grid-template-columns:minmax(0,1fr) 90px 80px}.fila>:nth-child(2),.fila>:nth-child(3){display:none}.fondeo{grid-template-columns:1fr}.mej{flex-wrap:wrap}}
+.cuadro-curva{position:absolute;z-index:3;pointer-events:none;display:flex;flex-direction:column;gap:2px;padding:8px 11px;background:#101215;border:1px solid #5aa9ff;border-radius:4px;font-size:.86rem;color:var(--tx);white-space:nowrap}
+.cuadro-curva[hidden]{display:none} .cuadro-curva em{font-style:normal;font-weight:600}
+.estado.peq{padding:12px 0}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="envol">
+    <a class="logo" href="#" aria-label="Núcleo Cuantitativo, inicio"><svg viewBox="0 0 32 32" fill="none" stroke="#3cc4dc" stroke-width="1.6"><ellipse cx="16" cy="16" rx="14" ry="5.5"/><ellipse cx="16" cy="16" rx="14" ry="5.5" transform="rotate(60 16 16)"/><ellipse cx="16" cy="16" rx="14" ry="5.5" transform="rotate(120 16 16)"/><circle cx="16" cy="16" r="2.4" fill="#3cc4dc" stroke="none"/></svg><span class="l1">NÚCLEO</span> <span class="l2">CUANTITATIVO</span></a>
+    <nav><a href="#como">Cómo funciona</a><a href="#mejorar">¿Se puede mejorar?</a><a href="#fondeo">Fondeo</a><a href="#planes">Planes</a><a href="legal.html">Condiciones</a></nav>
+    <a class="btn prim" href="#planes">Ver planes</a>
+  </div>
+</header>
+
+<main>
+<div class="envol">
+  <div class="portada">
+    <h1>Crea estrategias de trading <br>y examínalas con años que nunca vieron.</h1>
+    <div>
+      <p class="lead" style="margin-top:0">Para tu cuenta y para retos de fondeo. Sin programar: eliges con botones y el programa hace el resto.</p>
+      <div class="acc"><a class="btn prim" href="#como">Ver cómo funciona</a></div>
+      <p class="peq">Resultados con datos pasados.</p>
+    </div>
+    <div class="ventana" aria-label="Ficha de una estrategia en el programa">
+      <div class="barra"><i></i><i></i><i></i><span>Núcleo Cuantitativo › Banco › Ficha</span></div>
+      <div class="cuerpo">
+        <div class="f-cab"><div><b>Rango asiático</b> <small>Oro › velas de 1 hora</small></div> <span class="tag ok">Aprobada</span></div>
+        <div class="kpis"><div><small>Ganancia 2021-26</small> <b class="num pos">+4.315 $</b></div> <div><small>Lo peor que llegó a perder</small> <b class="num neg" id="kPeor">−1.129 $</b></div> <div><small>Peor día</small> <b class="num neg">−139 $</b></div> <div><small>Años que gana</small> <b class="num">6 de 6</b></div></div>
+        <div id="curvaPortada"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="como">
+  <div class="envol">
+    <div class="sec-cab"><h2>Cómo funciona</h2> <p>Un camino de cinco pasos. Cada uno lleva al siguiente.</p></div>
+    <div class="pasos">
+      <div class="paso"><span class="n num">01</span> <h3>Crear</h3> <p>Eliges mercado y velas. El programa prueba miles de ideas.</p></div>
+      <div class="paso"><span class="n num">02</span> <h3>Examinar</h3> <p>Solo pasan las que aguantan años que no usó para crearlas.</p></div>
+      <div class="paso"><span class="n num">03</span> <h3>Cartera</h3> <p>Junta varias para que trabajen a la vez.</p></div>
+      <div class="paso"><span class="n num">04</span> <h3>Fondeo</h3> <p>Estima cuántas veces pasaría las reglas de un reto.</p></div>
+      <div class="paso"><span class="n num">05</span> <h3>Exportar</h3> <p>Descarga los bots para MetaTrader 5.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="envol">
+    <div class="pieza">
+      <div class="texto">
+        <h2>Al Banco solo llegan las que aprueban.</h2>
+        <p>Ordenadas por nota y separadas por riesgo, mercado y velas.</p>
+        <ul><li><b>Examen final</b>, una sola vez, con años que nunca vio.</li><li><b>¿Fue suerte?</b> Se prueba con las operaciones en otro orden.</li><li><b>Las rechazadas</b> quedan guardadas, para no repetirlas.</li></ul>
+      </div>
+      <div class="ventana" aria-label="El Banco en el programa">
+        <div class="barra"><i></i><i></i><i></i><span>Banco</span></div>
+        <div class="cuerpo">
+          <div class="cats" role="tablist" aria-label="Categorías"><button role="tab" data-cat="c">Conservadoras <span class="num">7</span></button> <button role="tab" data-cat="m">Medias <span class="num">9</span></button> <button role="tab" data-cat="a" class="on">Agresivas <span class="num">8</span></button></div>
+          <div id="listaBanco"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pieza" id="fondeo">
+      <div class="texto">
+        <h2>¿Pasaría tu cartera un reto?</h2>
+        <p>Pones las reglas del reto, de 5.000 a 1.000.000 $, y el programa lo intenta empezando cada semana desde 2023.</p>
+        <ul><li><b>Peor día</b> y pérdida total, medidos de fábrica.</li><li><b>Dos carteras automáticas:</b> una para tu cuenta y otra que cumple los límites del reto.</li></ul>
+      </div>
+      <div class="ventana" aria-label="Fondeo en el programa">
+        <div class="barra"><i></i><i></i><i></i><span>Fondeo › Reto 10.000 $</span></div>
+        <div class="cuerpo fondeo">
+          <div class="anillo"><svg width="200" height="200" viewBox="0 0 200 200"><circle cx="100" cy="100" r="84" stroke="#24262b" stroke-width="14" fill="none"/><circle cx="100" cy="100" r="84" stroke="#55c08a" stroke-width="14" fill="none" stroke-linecap="round" stroke-dasharray="527.8" stroke-dashoffset="27"/></svg><div><b class="num">94,9 %</b> <small>de las veces pasa</small></div></div>
+          <div>
+            <div class="regla" style="border-top:1px solid var(--line)"><div class="rt"><span>Objetivo</span> <b class="num pos">+800 $</b></div></div>
+            <div class="regla"><div class="rt"><span>Peor día</span> <b class="num">−372 $ <span style="color:var(--tx3);font-weight:400">de −500 $</span></b></div> <div class="med"><i style="width:74%;background:var(--warn)"></i></div></div>
+            <div class="regla"><div class="rt"><span>Peor bajada en un intento</span> <b class="num">−642 $ <span style="color:var(--tx3);font-weight:400">de −1.000 $</span></b></div> <div class="med"><i style="width:64%;background:var(--ok)"></i></div></div>
+            <p class="peq" style="margin-top:10px">196 intentos con datos pasados. Es una estimación, no una garantía.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="mejorar" class="aprende">
+  <div class="envol">
+    <h2>Aprende de sus resultados</h2>
+    <p class="intro">Núcleo no se queda en el resultado: busca dónde falla cada estrategia y te lo dice en una frase.</p>
+    <div class="ejemplos">
+      <div class="ej"><span class="pre">¿Se puede mejorar?</span> <b>Pierde casi siempre los lunes.</b> <span class="num cifra">Sin los lunes: +1.240 $</span>
+        <div class="bb"><button class="btn sec peq" data-probar="si">Probarlo con otros años</button> <button class="btn peq nog" data-no>No, gracias</button></div> <div class="res" aria-live="polite"></div></div>
+      <div class="ej"><span class="pre">¿Se puede mejorar?</span> <b>De 17 a 21 h no gana nada.</b> <span class="num cifra">Sin esas horas: +2.910 $</span>
+        <div class="bb"><button class="btn sec peq" data-probar="si2">Probarlo con otros años</button> <button class="btn peq nog" data-no>No, gracias</button></div> <div class="res" aria-live="polite"></div></div>
+      <div class="ej"><span class="pre">¿Se puede mejorar?</span> <b>Con pausas cuando va mal, gana menos: no compensa.</b> <span class="num cifra">+2.216 $ frente a +3.436 $</span>
+        <div class="bb"><button class="btn sec peq" data-probar="no">Probarlo con otros años</button> <button class="btn peq nog" data-no>No, gracias</button></div> <div class="res" aria-live="polite"></div></div>
+      <div class="ej"><span class="pre">¿Se puede mejorar?</span> <b>Mejor tamaño de operación: % fijo de la cuenta.</b> <span class="num cifra">Gana 5,5 $ por cada $ de bajada</span>
+        <div class="bb"><button class="btn sec peq" data-usar>Usar al exportar</button> <button class="btn peq nog" data-no>No, gracias</button></div> <div class="res" aria-live="polite"></div></div>
+    </div>
+    <p class="cierre">Cada mejora se comprueba con años que no se usaron para encontrarla. Si no mejora, te lo dice.</p>
+  </div>
+</section>
+
+<section>
+  <div class="envol">
+    <div class="sec-cab"><h2>Qué lo hace distinto</h2></div>
+    <div class="dif">
+      <div><h3>Pensado para retos de fondeo</h3> <p>Perfiles de reto y «peor día» de serie. Cada cartera se compara con los límites de tu reto.</p></div>
+      <div><h3>Examen final con años que nunca vio</h3> <p>Se hace una sola vez, al final. Si no lo pasa, no llega al Banco.</p></div>
+      <div><h3>Carteras automáticas</h3> <p>Una para tu cuenta, buscando la que más gana. Otra para fondeo, que cumple los límites.</p></div>
+      <div><h3>Palabras de persona</h3> <p>Nada de jerga: «lo peor que llegó a perder», «¿fue suerte?», «¿es de fiar?».</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="historia" class="historia">
+  <div class="envol">
+    <h2>Por qué existe Núcleo</h2>
+    <blockquote>
+      <p>Me gusta el trading y opero. Vi muchos bots que prometían cosas absurdas y plataformas que hacen pruebas pero no las verifican. Pagas 500 $ por un bot, te baja la cuenta y resulta que era azar.</p>
+      <p>Una noche empecé a crear Núcleo, al principio solo para mí.</p>
+      <p>Los programas profesionales que había eran caros y complicados: hacía falta un curso para entenderlos. Yo quería algo sencillo, pero de calidad, que cualquiera entienda sin cursos.</p>
+      <p>La idea era sencilla: crear miles de estrategias y examinarlas tan en serio que, a veces, de miles solo queda una.</p>
+      <p>Y con unas pocas que pasan pruebas duras se puede formar una buena cartera, sin arriesgar de más.</p>
+      <footer>— Carol, creadora de Núcleo</footer>
+    </blockquote>
+  </div>
+</section>
+
+<section id="importa" class="importa">
+  <div class="envol">
+    <h2>Lo que de verdad importa</h2>
+    <p class="intro">No existe una estrategia mágica. Lo que más pesa en los resultados es:</p>
+    <div class="tres">
+      <div><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8" fill="currentColor"/></svg><h3>Elegir bien los activos</h3> <p>No todos se comportan igual ni sirven para lo mismo.</p></div>
+      <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M12 5v14"/><path d="M5 9h14"/><path d="M5 9l-2 5h4zM19 9l-2 5h4z"/></svg><h3>Equilibrar la cartera</h3> <p>Estrategias que no caigan todas a la vez.</p></div>
+      <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M12 8v5"/><path d="M12 16v.5"/></svg><h3>Gestionar el riesgo</h3> <p>Cuánto arriesgas en cada operación y cuánto puedes perder en un día.</p></div>
+    </div>
+    <p class="cierre">Núcleo te ayuda en las tres cosas, pero la decisión siempre es tuya.</p>
+  </div>
+</section>
+
+<section id="planes">
+  <div class="envol">
+    <div class="sec-cab"><h2>Planes</h2> <p>Prueba gratis. Compra bots sueltos o suscríbete. Precios con IVA.</p></div>
+    <div class="planes">
+      <div class="plan">
+        <h3 class="plan-n">Gratis</h3>
+        <div class="precio">Para siempre</div>
+        <ul>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Crear estrategias en todos los mercados y ver sus resultados</li>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Un bot de regalo los 7 primeros días, que funciona 30 días</li>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Después, bots sueltos: 1 por 8 €, 2 por 14 €, 3 por 21 €</li>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Los bots que compras funcionan para siempre</li>
+          <li class="no"><svg viewBox="0 0 24 24"><path d="M6 12h12"/></svg>Carteras: con la suscripción</li>
+          <li class="no"><svg viewBox="0 0 24 24"><path d="M6 12h12"/></svg>Fondeo: con la suscripción</li>
+        </ul>
+        <p class="prox">Descarga gratis: muy pronto</p>
+      </div>
+      <div class="plan">
+        <h3 class="plan-n">De pago <span class="tag acc">Completo</span></h3>
+        <div class="precio">19 € al mes (lanzamiento) · luego 29 €</div>
+        <ul>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Todos los mercados y velas</li>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Todas las pruebas y «¿Se puede mejorar?»</li>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Carteras para cuentas y para fondeo</li>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Fondeo completo con tus reglas</li>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Todos los bots que quieras para MetaTrader 5</li>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Tus bots siguen funcionando 3 meses si te das de baja</li>
+        </ul>
+        <a class="btn prim" href="https://agentqi.gumroad.com/l/copmtc" target="_blank" rel="noopener" style="margin-top:18px;display:inline-flex">Suscribirme</a>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="legal" id="avisos">
+  <div class="envol">
+    <h2>Avisos legales</h2>
+    <div class="cols">
+      <div><h3>No es consejo de inversión</h3> <p>Núcleo Cuantitativo es un programa de análisis y simulación. No presta servicios de inversión ni de asesoramiento. Nada de lo que muestra, incluidas las estrategias, las carteras, las notas y las estimaciones, es una recomendación personalizada ni una invitación a comprar o vender ningún instrumento financiero. Las decisiones de inversión son solo tuyas.</p></div>
+      <div><h3>Resultados pasados e hipotéticos</h3> <p>Todos los resultados se calculan con precios pasados y son hipotéticos: no corresponden a operaciones reales. Tienen límites: se obtienen conociendo el pasado, pueden no reflejar del todo costes, deslizamientos, falta de liquidez, huecos de precio ni cortes de conexión, y el comportamiento del mercado cambia. Los resultados pasados no garantizan resultados futuros.</p></div>
+      <div><h3>Riesgo de pérdida</h3> <p>Operar en los mercados financieros, en especial con apalancamiento (CFD, divisas, futuros o criptomonedas), tiene un riesgo alto. Puedes perder dinero rápidamente y puedes perder todo el capital que inviertas. Opera solo con dinero que puedas permitirte perder y, si tienes dudas, consulta con un asesor autorizado.</p></div>
+      <div><h3>Retos de fondeo</h3> <p>Los retos de fondeo los ofrecen empresas independientes, cada una con sus propias reglas y condiciones. Núcleo Cuantitativo no está asociado a ninguna de ellas. La probabilidad de pasar un reto es una estimación hecha con datos pasados, no una garantía.</p></div>
+      <div><h3>Uso de los bots</h3> <p>Los bots que exportas los instalas y los usas tú, bajo tu responsabilidad. Pruébalos antes en una cuenta de práctica y revisa sus ajustes, como el tamaño de las operaciones, antes de usarlos con dinero.</p></div>
+      <div><h3>Marcas</h3> <p>MetaTrader 5 y los nombres de mercados y plataformas citados son marcas de sus respectivos propietarios. Se mencionan solo para describir la compatibilidad del programa.</p></div>
+    </div>
+    <div class="pie"><span class="logo"><span class="l1">NÚCLEO</span> <span class="l2">CUANTITATIVO</span></span> <span><a href="legal.html" style="text-decoration:underline">Condiciones y aviso legal</a> · © 2026 Núcleo Cuantitativo</span></div>
+  </div>
+</footer>
+
+<script src="js/formato.js"></script>
+<script src="js/graficos.js"></script>
+<script>
+if (/solo=planes/.test(location.search)) document.body.classList.add('solo-planes');   // abierta encima del programa
+// Piezas del programa dibujadas con datos de ejemplo (las mismas formas que en esbozo.html)
+function rnd(seed) { let s = seed >>> 0; return () => { s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function serie(seed, n, deriva) { const r = rnd(seed), c = [0]; let v = 0; for (let i = 1; i < n; i++) { v += (r() < .44 ? 1.95 * (.55 + .9 * r()) : -(.85 + .3 * r())) * 85 * (r() < .7 ? 1 : 0) + deriva; c.push(v); } return c; }
+const grp = n => Math.round(Math.abs(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+// Igual que la curva del programa: área rellena, franjas por periodo con su nombre, bajada desde el máximo debajo con su eje, años abajo y resumen arriba
+// Rango asiático (Oro, 1 hora), plantilla «Validación repartida»: crear 2021-24 menos las 2.ª mitades de 2022, 2023 y 2024
+// (primera prueba, en morado) y examen final 2025-26. Su curva acaba en su ganancia y su caída es la de su ficha.
+// Mismos datos de ejemplo que esbozo.html (Rango asiático, una semana por punto desde enero de 2021)
+const FICHA = { gan: 4315, peor: 1129, ops: 272, c: [0,-94,-94,-191,-358,-358,-358,-518,-518,-313,-151,-226,-16,-16,-16,-16,158,63,151,151,53,53,-27,-200,-294,-294,-471,-292,-366,-457,-543,-503,-598,-772,-850,-550,-426,-402,-477,-92,-186,-186,-270,-361,-437,-521,-607,-389,-389,-227,-113,107,27,64,189,95,319,241,281,416,619,856,1062,1285,1199,1389,1217,1310,1310,1310,1310,1215,1215,1215,1215,1134,1363,1458,1375,1661,1476,1476,1401,1319,1409,1577,1577,1497,1342,1460,1694,1603,1838,1985,2177,2081,2176,2335,2454,2364,2584,2511,2414,2731,2645,3003,3003,2919,2826,2752,2867,3081,2992,3115,2949,3182,3412,3621,3682,3595,3595,3518,3617,3740,3740,3740,3660,3779,3779,3702,3818,3739,3739,3963,3963,3963,3963,3963,3866,3785,3785,3699,3699,3601,3601,3523,3523,3523,3523,3451,3362,3273,3179,3179,3101,3237,3237,3278,3278,3190,3102,3255,3371,3280,3393,3493,3397,3565,3388,3533,3451,3378,3378,3299,3299,3518,3432,3354,3281,3204,3111,3015,2927,2834,2834,2867,3267,3267,3191,3115,3473,3380,3497,3497,3413,3326,3480,3589,3589,3494,3494,3407,3632,3632,3632,3727,3556,3556,3674,3862,3862,4069,4069,4069,4069,3915,3915,3915,3821,3821,3987,3915,3820,4049,4221,4221,4221,4221,4136,4048,4299,4511,4439,4366,4366,4293,4206,4441,4353,4353,4273,4273,4188,4394,4526,4429,4429,4429,4344,4501,4418,4328,4420,4326,4230,4372,4280,4198,4351,4184,4095,4276,4194,4194,4113,4241,4149,4067,3897,3819,3724,3633,3633,3794,3699,3870,3870,3783,3705,3840,3840,3665,3665,3875,4074,4074,4259,4411,4411,4332,4243,4276,4112,4112,4112,4112,4033,4102,4273,4195,4315] };
+// la curva de la portada: la MISMA pieza que el programa (js/graficos.js), con los datos de ejemplo de «Rango asiático»
+function curva(el) {
+  const c = FICHA.c, t0 = Date.UTC(2021, 0, 4), puntos = c.map((v, i) => [new Date(t0 + i * 7 * 864e5).toISOString().slice(0, 10), v]);
+  const periodos = [{ t: 'e', desde: '2021-01-01', hasta: '2025-01-01' }, { t: 'v', desde: '2022-07-01', hasta: '2023-01-01' }, { t: 'v', desde: '2023-07-01', hasta: '2024-01-01' },
+    { t: 'v', desde: '2024-07-01', hasta: '2025-01-01' }, { t: 'c', desde: '2025-01-01', hasta: '2027-01-01' }];
+  N.graf.curvaGrande(el, puntos, { periodos, h: 210, ops: FICHA.ops, desdeCero: false, unidad: 'semana' });
+  // la ficha, la curva y la lista del Banco dicen lo mismo
+  let pk = -1e9; const m = Math.min(...c.map(v => (pk = Math.max(pk, v), v - pk))) || -1;
+  const txt = '−' + grp(-m) + ' $'; const kp = document.getElementById('kPeor'); if (kp) kp.textContent = txt;
+  BANCO_EJ.m[0][2][1][5] = txt; document.querySelectorAll('#listaBanco .fila').forEach(f => { if (f.textContent.includes('Rango asiático')) f.querySelector('.neg').textContent = txt; });
+}
+function spark(el, seed) { const c = serie(seed, 80, 6), w = 110, h = 30, mn = Math.min(...c), mx = Math.max(...c);
+  const d = c.map((v, i) => (i ? 'L' : 'M') + (i / 79 * w).toFixed(1) + ' ' + (h - 2 - (v - mn) / (mx - mn) * (h - 4)).toFixed(1)).join('');
+  const col = c[c.length - 1] >= 0 ? '#55c08a' : '#e5685b';
+  el.innerHTML = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><path d="${d}L${w} ${h}L0 ${h}Z" fill="${col}" opacity=".22"/><path d="${d}" fill="none" stroke="${col}" stroke-width="1.6"/></svg>`; }
+const pinta = () => { curva(document.getElementById('curvaPortada')); document.querySelectorAll('[data-spark]').forEach(e => spark(e, +e.dataset.spark)); };
+// Imagen del Banco: las pestañas cambian la lista, como en el programa
+const BANCO_EJ = {
+  c: [['Oro', '4 horas', [['Doble suelo', 'Gana en 6 de 6 años', '8,8', 51, '+3.436 $', '−541 $'], ['Vuelta a la media', 'Gana en 5 de 6 años', '7,1', 52, '+3.694 $', '−541 $']]], ['Euro / Dólar', '1 hora', [['Rebote en media', 'Gana en 6 de 6 años', '8,2', 53, '+3.882 $', '−421 $']]]],
+  m: [['Oro', '1 hora', [['Número redondo', 'Gana en 6 de 6 años', '9,1', 54, '+8.519 $', '−719 $'], ['Rango asiático', 'Gana en 6 de 6 años', '6,3', 55, '+4.315 $', '−1.129 $']]], ['Nasdaq 100', '1 hora', [['Ruptura de rango', 'Gana en 6 de 6 años', '9,8', 56, '+11.332 $', '−610 $']]]],
+  a: [['Bitcoin', '1 hora', [['Ruptura de canal', 'Gana en 5 de 6 años', '9,4', 41, '+14.824 $', '−1.852 $'], ['Impulso del lunes', 'Gana en 5 de 6 años', '8,1', 42, '+10.155 $', '−2.349 $']]], ['DAX (Alemania)', '15 min', [['Apertura europea', 'Gana en 6 de 6 años', '7,6', 43, '+9.212 $', '−1.404 $']]]] };
+function pintaBanco(cat) {
+  document.querySelectorAll('.cats [data-cat]').forEach(b => { b.classList.toggle('on', b.dataset.cat === cat); b.setAttribute('aria-selected', b.dataset.cat === cat); });
+  document.getElementById('listaBanco').innerHTML = BANCO_EJ[cat].map(([m, v, l], i) => `<div class="grupo"${i ? ' style="margin-top:16px"' : ''}>${m} <span>›</span> velas de ${v}</div>
+    ${i ? '' : '<div class="fila cab"><span>Estrategia</span> <span>Nota</span> <span>Curva</span> <span class="d">Ganancia</span> <span class="d">Lo peor</span></div>'}
+    ${l.map(([n, t, nota, sd, g, p]) => `<div class="fila"><span><b>${n}</b> <small>${t}</small></span> <span class="num" style="color:var(--acc2)">${nota}</span> <span data-spark="${sd}"></span> <span class="num pos d">${g}</span> <span class="num neg d">${p}</span></div>`).join('')}`).join('');
+  document.querySelectorAll('#listaBanco [data-spark]').forEach(e => spark(e, +e.dataset.spark));
+}
+document.querySelectorAll('.cats [data-cat]').forEach(b => b.onclick = () => pintaBanco(b.dataset.cat));
+pintaBanco('a');
+// Demostración de «¿Se puede mejorar?»: los botones responden como en el programa
+document.querySelectorAll('.ej').forEach(card => {
+  const res = card.querySelector('.res'), bb = card.querySelector('.bb');
+  card.querySelectorAll('[data-probar]').forEach(b => b.onclick = () => { bb.style.display = 'none'; res.innerHTML = '<span class="giro"></span>Probando con la primera prueba…';
+    setTimeout(() => { res.innerHTML = b.dataset.probar === 'no' ? '<span class="no">En la primera prueba (2024) no mejora: mejor no tocarla.</span>' : `<span class="si">En la primera prueba (2024) también mejora: ${b.dataset.probar === 'si' ? '+409' : '+352'} $ ✓</span>`; }, 1200); });
+  card.querySelectorAll('[data-no]').forEach(b => b.onclick = () => { card.classList.add('apagada'); bb.style.display = 'none'; });
+  card.querySelectorAll('[data-usar]').forEach(b => b.onclick = () => { bb.style.display = 'none'; res.innerHTML = '<span class="si">Hecho ✓</span>'; });
+});
+pinta(); let t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(pinta, 150); });
+</script>
+</body>
+</html>
